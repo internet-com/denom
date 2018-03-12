@@ -1,5 +1,5 @@
 # denom
-A Decentralized domain auction/selling service
+A Decentralized domain buying/selling service
 
 ## Features
 1. Escrow
