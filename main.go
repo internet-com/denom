@@ -39,7 +39,7 @@ func main() {
 
 	// Create the application - in memory or persisted to disk
 	var app types.Application
-	app = denom.NewDomainTransferApp(true)
+	app = denom.NewDenomApp(true)
 
 	// Start the listener
 	srv, err := server.NewServer(*addrPtr, *abciPtr, app)
