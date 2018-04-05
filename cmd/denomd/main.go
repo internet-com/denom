@@ -14,16 +14,16 @@ import (
 	dbm "github.com/tendermint/tmlibs/db"
 	"github.com/tendermint/tmlibs/log"
 
-	"github.com/svaishnavy/denom/app"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/svaishnavy/denom/app"
 )
 
 // democoindCmd is the entry point for this binary
 var (
-	democoindCmd = &cobra.Command{
-		Use:   "democoind",
-		Short: "Gaia Daemon (server)",
+	denomCmd = &cobra.Command{
+		Use:   "denom",
+		Short: "Denom Daemon (server)",
 	}
 )
 
@@ -52,19 +52,19 @@ func defaultOptions(args []string) (json.RawMessage, string, cmn.HexBytes, error
 }
 
 func generateApp(rootDir string, logger log.Logger) (abci.Application, error) {
-	dbMain, err := dbm.NewGoLevelDB("democoin", filepath.Join(rootDir, "data"))
+	dbMain, err := dbm.NewGoLevelDB("denom", filepath.Join(rootDir, "data"))
 	if err != nil {
 		return nil, err
 	}
-	dbAcc, err := dbm.NewGoLevelDB("democoin-acc", filepath.Join(rootDir, "data"))
+	dbAcc, err := dbm.NewGoLevelDB("denom-acc", filepath.Join(rootDir, "data"))
 	if err != nil {
 		return nil, err
 	}
-	dbIBC, err := dbm.NewGoLevelDB("democoin-ibc", filepath.Join(rootDir, "data"))
+	dbIBC, err := dbm.NewGoLevelDB("denom-ibc", filepath.Join(rootDir, "data"))
 	if err != nil {
 		return nil, err
 	}
-	dbStaking, err := dbm.NewGoLevelDB("democoin-staking", filepath.Join(rootDir, "data"))
+	dbStaking, err := dbm.NewGoLevelDB("denom-staking", filepath.Join(rootDir, "data"))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func generateApp(rootDir string, logger log.Logger) (abci.Application, error) {
 		"ibc":     dbIBC,
 		"staking": dbStaking,
 	}
-	bapp := app.NewDemocoinApp(logger, dbs)
+	bapp := app.NewDenomApp(logger, dbs)
 	return bapp, nil
 }
 
@@ -83,7 +83,7 @@ func main() {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
 		With("module", "main")
 
-	democoindCmd.AddCommand(
+	denomCmd.AddCommand(
 		server.InitCmd(defaultOptions, logger),
 		server.StartCmd(generateApp, logger),
 		server.UnsafeResetAllCmd(logger),
@@ -93,7 +93,7 @@ func main() {
 	)
 
 	// prepare and add flags
-	rootDir := os.ExpandEnv("$HOME/.democoind")
-	executor := cli.PrepareBaseCmd(democoindCmd, "BC", rootDir)
+	rootDir := os.ExpandEnv("$HOME/.denom")
+	executor := cli.PrepareBaseCmd(denomCmd, "BC", rootDir)
 	executor.Execute()
 }

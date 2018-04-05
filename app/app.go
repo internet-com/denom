@@ -27,7 +27,7 @@ const (
 )
 
 // Extended ABCI application
-type DemocoinApp struct {
+type DenomApp struct {
 	*bam.BaseApp
 	cdc *wire.Codec
 
@@ -41,9 +41,9 @@ type DemocoinApp struct {
 	accountMapper sdk.AccountMapper
 }
 
-func NewDemocoinApp(logger log.Logger, dbs map[string]dbm.DB) *DemocoinApp {
+func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 	// create your application object
-	var app = &DemocoinApp{
+	var app = &DenomApp{
 		BaseApp:            bam.NewBaseApp(appName, logger, dbs["main"]),
 		cdc:                MakeCodec(),
 		capKeyMainStore:    sdk.NewKVStoreKey("main"),
@@ -126,7 +126,7 @@ func MakeCodec() *wire.Codec {
 }
 
 // custom logic for transaction decoding
-func (app *DemocoinApp) txDecoder(txBytes []byte) (sdk.Tx, sdk.Error) {
+func (app *DenomApp) txDecoder(txBytes []byte) (sdk.Tx, sdk.Error) {
 	var tx = sdk.StdTx{}
 
 	if len(txBytes) == 0 {
@@ -143,7 +143,7 @@ func (app *DemocoinApp) txDecoder(txBytes []byte) (sdk.Tx, sdk.Error) {
 }
 
 // custom logic for democoin initialization
-func (app *DemocoinApp) initChainerFn(coolKeeper cool.Keeper) sdk.InitChainer {
+func (app *DenomApp) initChainerFn(coolKeeper cool.Keeper) sdk.InitChainer {
 	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 		stateJSON := req.AppStateBytes
 
