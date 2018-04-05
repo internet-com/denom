@@ -1,4 +1,4 @@
- app
+package app
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ import (
 
 	"github.com/svaishnavy/denom/types"
 	"github.com/svaishnavy/denom/x/cool"
-	"github.com/svaishnavy/denom/denom/x/sketchy"
+	"github.com/svaishnavy/denom/x/sketchy"
 )
 
 const (
