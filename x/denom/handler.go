@@ -28,7 +28,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case ValidateDomainMessage:
 			return handleValidateDomainMessage(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("Unrecognized cool Msg type: %v", reflect.TypeOf(msg).Name())
+			errMsg := fmt.Sprintf("Unrecognized Msg type: %v", reflect.TypeOf(msg).Name())
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}

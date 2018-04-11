@@ -18,7 +18,7 @@ import (
 // take the coolness quiz transaction
 func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "for_sale [domain] [fee]",
+		Use:   "denom [domain] [fee]",
 		Short: "set your domain for sale",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) == 0 {

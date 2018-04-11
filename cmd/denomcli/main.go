@@ -19,6 +19,7 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/commands"
 	ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/commands"
 	simplestakingcmd "github.com/cosmos/cosmos-sdk/x/simplestake/commands"
+	coolcmd "github.com/svaishnavy/denom/x/cool/commands"
 	denomcmd "github.com/svaishnavy/denom/x/denom/commands"
 
 	"github.com/svaishnavy/denom/app"
@@ -75,6 +76,10 @@ func main() {
 	democliCmd.AddCommand(
 		client.PostCommands(
 			simplestakingcmd.UnbondTxCmd(cdc),
+		)...)
+	democliCmd.AddCommand(
+		client.PostCommands(
+			coolcmd.SetTrendTxCmd(cdc),
 		)...)
 	democliCmd.AddCommand(
 		client.PostCommands(
