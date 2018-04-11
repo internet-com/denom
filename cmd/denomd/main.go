@@ -42,7 +42,7 @@ func defaultOptions(args []string) (json.RawMessage, string, cmn.HexBytes, error
         "address": "%s",
         "coins": [
           {
-            "denom": "mycoin",
+            "denom": "DNOM",
             "amount": 9007199254740992
           }
         ]

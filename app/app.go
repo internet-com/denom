@@ -19,6 +19,7 @@ import (
 
 	"github.com/svaishnavy/denom/types"
 	"github.com/svaishnavy/denom/x/cool"
+	"github.com/svaishnavy/denom/x/denom"
 	"github.com/svaishnavy/denom/x/sketchy"
 )
 
@@ -60,19 +61,21 @@ func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 
 	// add handlers
 	coinKeeper := bank.NewCoinKeeper(app.accountMapper)
-	coolKeeper := cool.NewKeeper(app.capKeyMainStore, coinKeeper)
+	//coolKeeper := cool.NewKeeper(app.capKeyMainStore, coinKeeper)
+	denomKeeper := denom.NewKeeper(app.capKeyMainStore, coinKeeper)
 	ibcMapper := ibc.NewIBCMapper(app.cdc, app.capKeyIBCStore)
 	stakeKeeper := simplestake.NewKeeper(app.capKeyStakingStore, coinKeeper)
 	app.Router().
 		AddRoute("bank", bank.NewHandler(coinKeeper)).
-		AddRoute("cool", cool.NewHandler(coolKeeper)).
+		//AddRoute("cool", cool.NewHandler(coolKeeper)).
+		AddRoute("denom", denom.NewHandler(denomKeeper)).
 		AddRoute("sketchy", sketchy.NewHandler()).
 		AddRoute("ibc", ibc.NewHandler(ibcMapper, coinKeeper)).
 		AddRoute("simplestake", simplestake.NewHandler(stakeKeeper))
 
 	// initialize BaseApp
 	app.SetTxDecoder(app.txDecoder)
-	app.SetInitChainer(app.initChainerFn(coolKeeper))
+	app.SetInitChainer(app.initChainerFn(denomKeeper))
 	app.MountStoreWithDB(app.capKeyMainStore, sdk.StoreTypeIAVL, dbs["main"])
 	app.MountStoreWithDB(app.capKeyAccountStore, sdk.StoreTypeIAVL, dbs["acc"])
 	app.MountStoreWithDB(app.capKeyIBCStore, sdk.StoreTypeIAVL, dbs["ibc"])
@@ -99,6 +102,7 @@ func MakeCodec() *wire.Codec {
 	const msgTypeIBCReceiveMsg = 0x6
 	const msgTypeBondMsg = 0x7
 	const msgTypeUnbondMsg = 0x8
+	const msgTypeSetDomainForSaleMsg = 0x9
 	var _ = oldwire.RegisterInterface(
 		struct{ sdk.Msg }{},
 		oldwire.ConcreteType{bank.SendMsg{}, msgTypeSend},
@@ -109,6 +113,7 @@ func MakeCodec() *wire.Codec {
 		oldwire.ConcreteType{ibc.IBCReceiveMsg{}, msgTypeIBCReceiveMsg},
 		oldwire.ConcreteType{simplestake.BondMsg{}, msgTypeBondMsg},
 		oldwire.ConcreteType{simplestake.UnbondMsg{}, msgTypeUnbondMsg},
+		oldwire.ConcreteType{denom.SetDomainForSaleMessage{}, msgTypeSetDomainForSaleMsg},
 	)
 
 	const accTypeApp = 0x1
@@ -142,8 +147,8 @@ func (app *DenomApp) txDecoder(txBytes []byte) (sdk.Tx, sdk.Error) {
 	return tx, nil
 }
 
-// custom logic for democoin initialization
-func (app *DenomApp) initChainerFn(coolKeeper cool.Keeper) sdk.InitChainer {
+// custom logic for denom initialization
+func (app *DenomApp) initChainerFn(denomKeeper denom.Keeper) sdk.InitChainer {
 	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 		stateJSON := req.AppStateBytes
 
@@ -164,7 +169,7 @@ func (app *DenomApp) initChainerFn(coolKeeper cool.Keeper) sdk.InitChainer {
 		}
 
 		// Application specific genesis handling
-		err = coolKeeper.InitGenesis(ctx, stateJSON)
+		err = denomKeeper.InitGenesis(ctx, stateJSON)
 		if err != nil {
 			panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
 			//	return sdk.ErrGenesisParse("").TraceCause(err, "")

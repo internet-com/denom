@@ -19,6 +19,7 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/commands"
 	ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/commands"
 	simplestakingcmd "github.com/cosmos/cosmos-sdk/x/simplestake/commands"
+	denomcmd "github.com/svaishnavy/denom/x/denom/commands"
 
 	"github.com/svaishnavy/denom/app"
 	"github.com/svaishnavy/denom/types"
@@ -74,6 +75,12 @@ func main() {
 	democliCmd.AddCommand(
 		client.PostCommands(
 			simplestakingcmd.UnbondTxCmd(cdc),
+		)...)
+	democliCmd.AddCommand(
+		client.PostCommands(
+			denomcmd.SetDomainForSaleCommand(cdc),
+			denomcmd.ValidateDomainCommand(cdc),
+			denomcmd.RegisterDomainCommand(cdc),
 		)...)
 
 	// add proxy, version and key info
