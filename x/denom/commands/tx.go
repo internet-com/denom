@@ -18,7 +18,7 @@ import (
 // take the coolness quiz transaction
 func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "denom [domain] [fee]",
+		Use:   "sell [domain]",
 		Short: "set your domain for sale",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) == 0 {
@@ -57,7 +57,7 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 // take the coolness quiz transaction
 func RegisterDomainCommand(cdc *wire.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "register_domain [domain] [fee]",
+		Use:   "register [domain] [fee]",
 		Short: "Register domain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) == 0 {
@@ -95,7 +95,7 @@ func RegisterDomainCommand(cdc *wire.Codec) *cobra.Command {
 // set a new cool trend transaction
 func ValidateDomainCommand(cdc *wire.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "validate_domain [domain] [fee]",
+		Use:   "validate [domain] [fee]",
 		Short: "Validate domain",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) == 0 {

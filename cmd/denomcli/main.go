@@ -29,8 +29,8 @@ import (
 // gaiacliCmd is the entry point for this binary
 var (
 	democliCmd = &cobra.Command{
-		Use:   "democli",
-		Short: "Democoin light-client",
+		Use:   "denomcli",
+		Short: "denom light-client",
 	}
 )
 
