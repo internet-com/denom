@@ -9,17 +9,17 @@ import (
 
 // A really cool msg type, these fields are can be entirely arbitrary and
 // custom to your message
-type RegisterDomainMessage struct {
+type ClaimDomainMessage struct {
 	Sender     sdk.Address
 	DomainName string
 	Fee        uint64 // Optional
 }
 
-var _ sdk.Msg = RegisterDomainMessage{}
+var _ sdk.Msg = ClaimDomainMessage{}
 
 // New cool message
-func NewRegisterDomainMessage(sender sdk.Address, domainName string, fee uint64) RegisterDomainMessage {
-	return RegisterDomainMessage{
+func NewClaimDomainMessage(sender sdk.Address, domainName string, fee uint64) ClaimDomainMessage {
+	return ClaimDomainMessage{
 		Sender:     sender,
 		DomainName: domainName,
 		Fee:        fee,
@@ -29,15 +29,15 @@ func NewRegisterDomainMessage(sender sdk.Address, domainName string, fee uint64)
 // enforce the msg type at compile time
 
 // nolint
-func (msg RegisterDomainMessage) Type() string                            { return "denom" }
-func (msg RegisterDomainMessage) Get(key interface{}) (value interface{}) { return nil }
-func (msg RegisterDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
-func (msg RegisterDomainMessage) String() string {
-	return fmt.Sprintf("RegisterDomainMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
+func (msg ClaimDomainMessage) Type() string                            { return "claim" }
+func (msg ClaimDomainMessage) Get(key interface{}) (value interface{}) { return nil }
+func (msg ClaimDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
+func (msg ClaimDomainMessage) String() string {
+	return fmt.Sprintf("ClaimDomainMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
 }
 
 // Validate Basic is used to quickly disqualify obviously invalid messages quickly
-func (msg RegisterDomainMessage) ValidateBasic() sdk.Error {
+func (msg ClaimDomainMessage) ValidateBasic() sdk.Error {
 	if len(msg.Sender) == 0 || len(msg.DomainName) == 0 {
 		return sdk.ErrUnknownAddress(msg.Sender.String()).Trace("")
 	}
@@ -45,7 +45,7 @@ func (msg RegisterDomainMessage) ValidateBasic() sdk.Error {
 }
 
 // Get the bytes for the message signer to sign on
-func (msg RegisterDomainMessage) GetSignBytes() []byte {
+func (msg ClaimDomainMessage) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -99,6 +99,7 @@ func (msg SetDomainForSaleMessage) GetSignBytes() []byte {
 type ValidateDomainMessage struct {
 	Sender     sdk.Address
 	DomainName string
+	Owner      sdk.Address
 	Fee        uint64 // Optional
 }
 
@@ -116,11 +117,11 @@ func NewValidateDomainMessage(sender sdk.Address, domainName string, fee uint64)
 // enforce the msg type at compile time
 
 // nolint
-func (msg ValidateDomainMessage) Type() string                            { return "denom" }
+func (msg ValidateDomainMessage) Type() string                            { return "validate" }
 func (msg ValidateDomainMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg ValidateDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg ValidateDomainMessage) String() string {
-	return fmt.Sprintf("RegisterDomainMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
+	return fmt.Sprintf("ClaimDomainMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
 }
 
 // Validate Basic is used to quickly disqualify obviously invalid messages quickly

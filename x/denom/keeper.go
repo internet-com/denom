@@ -1,6 +1,8 @@
 package denom
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,28 +26,52 @@ func NewKeeper(key sdk.StoreKey, bankKeeper bank.CoinKeeper) Keeper {
 	return Keeper{bankKeeper, key}
 }
 
-// Key to knowing the trend on the streets!
-var trendKey = []byte("TrendKey")
+type Domain struct {
+	ValidatedBy map[string]bool
+	Owner       sdk.Address
+	ClaimedBy   map[string]map[string]bool
+}
 
 // GetTrend - returns the current cool trend
-func (k Keeper) GetTrend(ctx sdk.Context) string {
+func (k Keeper) GetDomain(ctx sdk.Context, domainName string) (Domain, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(trendKey)
-	return string(bz)
+	domainNameBytes := []byte(domainName)
+	if store.Has(domainNameBytes) {
+		domainBytes := store.Get(domainNameBytes)
+		buf := new(bytes.Buffer)
+		buf.Read(domainBytes)
+		domain := Domain{}
+		err := binary.Read(buf, binary.BigEndian, &domain)
+		return domain, err
+	} else {
+		return Domain{}, nil
+	}
 }
 
 // Implements sdk.AccountMapper.
-func (k Keeper) setTrend(ctx sdk.Context, newTrend string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(trendKey, []byte(newTrend))
+func (k Keeper) Claim(ctx sdk.Context, sender sdk.Address, domainName string) {
+	domain, err := k.GetDomain(ctx, domainName)
+	if err == nil {
+		store := ctx.KVStore(k.storeKey)
+		domainNameBytes := []byte(domainName)
+		domain.ClaimedBy[sender.String()] = map[string]bool{}
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.BigEndian, &domain)
+		store.Set(domainNameBytes, buf.Bytes())
+	}
 }
 
-// CheckTrend - Returns true or false based on whether guessedTrend is currently cool or not
-func (k Keeper) CheckTrend(ctx sdk.Context, guessedTrend string) bool {
-	if guessedTrend == k.GetTrend(ctx) {
-		return true
+// Implements sdk.AccountMapper.
+func (k Keeper) Validate(ctx sdk.Context, sender sdk.Address, domainName string) {
+	domain, err := k.GetDomain(ctx, domainName)
+	if err == nil {
+		store := ctx.KVStore(k.storeKey)
+		domainNameBytes := []byte(domainName)
+		domain.ClaimedBy[sender.String()] = map[string]bool{}
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.BigEndian, &domain)
+		store.Set(domainNameBytes, buf.Bytes())
 	}
-	return false
 }
 
 // InitGenesis - store the genesis trend

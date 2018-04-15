@@ -85,7 +85,7 @@ func main() {
 		client.PostCommands(
 			denomcmd.SetDomainForSaleCommand(cdc),
 			denomcmd.ValidateDomainCommand(cdc),
-			denomcmd.RegisterDomainCommand(cdc),
+			denomcmd.ClaimDomainCommand(cdc),
 		)...)
 
 	// add proxy, version and key info

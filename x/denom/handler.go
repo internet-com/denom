@@ -21,8 +21,8 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
-		case RegisterDomainMessage:
-			return handleRegisterDomainMessage(ctx, k, msg)
+		case ClaimDomainMessage:
+			return handleClaimDomainMessage(ctx, k, msg)
 		case SetDomainForSaleMessage:
 			return handleSetDomainForSaleMessage(ctx, k, msg)
 		case ValidateDomainMessage:
@@ -34,9 +34,9 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-// Handle QuizMsg This is the engine of your module
-func handleRegisterDomainMessage(ctx sdk.Context, k Keeper, msg RegisterDomainMessage) sdk.Result {
+func handleClaimDomainMessage(ctx sdk.Context, k Keeper, msg ClaimDomainMessage) sdk.Result {
 	//k.setTrend(ctx, msg.Cool)
+	k.Claim(ctx, msg.Sender, msg.DomainName)
 	return sdk.Result{
 		Code: sdk.CodeOK,
 	}
@@ -52,7 +52,6 @@ func handleValidateDomainMessage(ctx sdk.Context, k Keeper, msg ValidateDomainMe
 
 // Handle QuizMsg This is the engine of your module
 func handleSetDomainForSaleMessage(ctx sdk.Context, k Keeper, msg SetDomainForSaleMessage) sdk.Result {
-
 	//correct := k.CheckTrend(ctx, msg.CoolAnswer)
 
 	/*

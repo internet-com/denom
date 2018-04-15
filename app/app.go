@@ -103,6 +103,8 @@ func MakeCodec() *wire.Codec {
 	const msgTypeBondMsg = 0x7
 	const msgTypeUnbondMsg = 0x8
 	const msgTypeSetDomainForSaleMsg = 0x9
+	const msgTypeValidateDomainMsg = 0x10
+	const msgTypeClaimDomainMsg = 0x11
 	var _ = oldwire.RegisterInterface(
 		struct{ sdk.Msg }{},
 		oldwire.ConcreteType{bank.SendMsg{}, msgTypeSend},
@@ -114,6 +116,8 @@ func MakeCodec() *wire.Codec {
 		oldwire.ConcreteType{simplestake.BondMsg{}, msgTypeBondMsg},
 		oldwire.ConcreteType{simplestake.UnbondMsg{}, msgTypeUnbondMsg},
 		oldwire.ConcreteType{denom.SetDomainForSaleMessage{}, msgTypeSetDomainForSaleMsg},
+		oldwire.ConcreteType{denom.ValidateDomainMessage{}, msgTypeValidateDomainMsg},
+		oldwire.ConcreteType{denom.ClaimDomainMessage{}, msgTypeClaimDomainMsg},
 	)
 
 	const accTypeApp = 0x1
