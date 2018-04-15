@@ -44,7 +44,7 @@ func (k Keeper) GetDomain(ctx sdk.Context, domainName string) (Domain, error) {
 		err := binary.Read(buf, binary.BigEndian, &domain)
 		return domain, err
 	} else {
-		return Domain{}, nil
+		return Domain{ClaimedBy: map[string]map[string]bool{}}, nil
 	}
 }
 

@@ -7,16 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// This is just an example to demonstrate a functional custom module
-// with full feature set functionality.
-//
-//  /$$$$$$$  /$$$$$$   /$$$$$$  /$$
-// /$$_____/ /$$__  $$ /$$__  $$| $$
-//| $$      | $$  \ $$| $$  \ $$| $$
-//| $$      | $$  | $$| $$  | $$| $$
-//|  $$$$$$$|  $$$$$$/|  $$$$$$/| $$$$$$$
-// \_______/ \______/  \______/ |______/
-
 // NewHandler returns a handler for "cool" type messages.
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {

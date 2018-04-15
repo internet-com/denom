@@ -29,7 +29,7 @@ func NewClaimDomainMessage(sender sdk.Address, domainName string, fee uint64) Cl
 // enforce the msg type at compile time
 
 // nolint
-func (msg ClaimDomainMessage) Type() string                            { return "claim" }
+func (msg ClaimDomainMessage) Type() string                            { return "denom" }
 func (msg ClaimDomainMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg ClaimDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg ClaimDomainMessage) String() string {
@@ -70,7 +70,7 @@ func NewSetDomainForSaleMessage(sender sdk.Address, domainName string, fee uint6
 	}
 }
 
-func (msg SetDomainForSaleMessage) Type() string                            { return "sell" }
+func (msg SetDomainForSaleMessage) Type() string                            { return "denom" }
 func (msg SetDomainForSaleMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg SetDomainForSaleMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg SetDomainForSaleMessage) String() string {
@@ -117,7 +117,7 @@ func NewValidateDomainMessage(sender sdk.Address, domainName string, fee uint64)
 // enforce the msg type at compile time
 
 // nolint
-func (msg ValidateDomainMessage) Type() string                            { return "validate" }
+func (msg ValidateDomainMessage) Type() string                            { return "denom" }
 func (msg ValidateDomainMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg ValidateDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg ValidateDomainMessage) String() string {
