@@ -70,7 +70,7 @@ func NewSetDomainForSaleMessage(sender sdk.Address, domainName string, fee uint6
 	}
 }
 
-func (msg SetDomainForSaleMessage) Type() string                            { return "denom" }
+func (msg SetDomainForSaleMessage) Type() string                            { return "sell" }
 func (msg SetDomainForSaleMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg SetDomainForSaleMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg SetDomainForSaleMessage) String() string {
