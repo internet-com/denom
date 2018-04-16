@@ -16,23 +16,38 @@ type GenesisState struct {
 
 // Keeper - handlers sets/gets of custom variables for your module
 type Keeper struct {
-	ck bank.CoinKeeper
+	ck                 bank.CoinKeeper
+	domainStoreKey     sdk.StoreKey
+	stakeStore         sdk.StoreKey
+	validationStoreKey sdk.StoreKey
+	userStoreKey       sdk.StoreKey
 
 	storeKey sdk.StoreKey // The (unexposed) key used to access the store from the Context.
 }
 
-// NewKeeper - Returns the Keeper
-func NewKeeper(key sdk.StoreKey, bankKeeper bank.CoinKeeper) Keeper {
-	return Keeper{bankKeeper, key}
+type DomainClaim struct {
+	ClaimedBy sdk.Address
 }
 
 type Domain struct {
-	ValidatedBy map[string]bool
 	Owner       sdk.Address
-	ClaimedBy   map[string]map[string]bool
+	ValidatedBy map[string]string
+	ClaimedBy   map[string]bool
 }
 
-// GetTrend - returns the current cool trend
+func (k Keeper) GetBondedTokens(ctx sdk.Context, address sdk.Address) uint64 {
+	//store := ctx.KVStore(k.stakeStore)
+	//addressBytes := []byte(address.String())
+	//bondBytes := store.Get(addressBytes)
+	return 1
+}
+
+// NewKeeper - Returns the Keeper
+func NewKeeper(key sdk.StoreKey, bankKeeper bank.CoinKeeper) Keeper {
+	return Keeper{ck: bankKeeper, storeKey: key}
+}
+
+// GetDomain - Returns the domain details from store
 func (k Keeper) GetDomain(ctx sdk.Context, domainName string) (Domain, error) {
 	store := ctx.KVStore(k.storeKey)
 	domainNameBytes := []byte(domainName)
@@ -44,7 +59,7 @@ func (k Keeper) GetDomain(ctx sdk.Context, domainName string) (Domain, error) {
 		err := binary.Read(buf, binary.BigEndian, &domain)
 		return domain, err
 	} else {
-		return Domain{ClaimedBy: map[string]map[string]bool{}}, nil
+		return Domain{ClaimedBy: map[string]bool{}}, nil
 	}
 }
 
@@ -54,7 +69,7 @@ func (k Keeper) Claim(ctx sdk.Context, sender sdk.Address, domainName string) {
 	if err == nil {
 		store := ctx.KVStore(k.storeKey)
 		domainNameBytes := []byte(domainName)
-		domain.ClaimedBy[sender.String()] = map[string]bool{}
+		domain.ClaimedBy[sender.String()] = true
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, &domain)
 		store.Set(domainNameBytes, buf.Bytes())
@@ -62,12 +77,27 @@ func (k Keeper) Claim(ctx sdk.Context, sender sdk.Address, domainName string) {
 }
 
 // Implements sdk.AccountMapper.
-func (k Keeper) Validate(ctx sdk.Context, sender sdk.Address, domainName string) {
+func (k Keeper) Validate(ctx sdk.Context, sender sdk.Address, domainName string, owner sdk.Address) {
 	domain, err := k.GetDomain(ctx, domainName)
 	if err == nil {
 		store := ctx.KVStore(k.storeKey)
 		domainNameBytes := []byte(domainName)
-		domain.ClaimedBy[sender.String()] = map[string]bool{}
+		// Check if sender is validator and total votes for the claimer is > 2/3rd total bonded DNOM
+		domain.ValidatedBy[sender.String()] = owner.String()
+		votes := uint64(0)
+		for validator, voted_for := range domain.ValidatedBy {
+			if owner.String() == voted_for {
+				validatorAddress, err := sdk.GetAddress(validator)
+				if err == nil {
+					votes += k.GetBondedTokens(ctx, validatorAddress)
+				}
+			}
+		}
+		// Modify the below line to check the bonded stake.
+		if votes >= 1 {
+			domain.ClaimedBy[owner.String()] = true
+			domain.Owner = owner
+		}
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, &domain)
 		store.Set(domainNameBytes, buf.Bytes())
