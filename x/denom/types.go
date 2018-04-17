@@ -56,17 +56,17 @@ func (msg ClaimDomainMessage) GetSignBytes() []byte {
 type SetDomainForSaleMessage struct {
 	Sender     sdk.Address
 	DomainName string
-	Fee        uint64
+	SalePrice  uint64
 }
 
 var _ sdk.Msg = SetDomainForSaleMessage{}
 
 // New cool message
-func NewSetDomainForSaleMessage(sender sdk.Address, domainName string, fee uint64) SetDomainForSaleMessage {
+func NewSetDomainForSaleMessage(sender sdk.Address, domainName string, salePrice uint64) SetDomainForSaleMessage {
 	return SetDomainForSaleMessage{
 		Sender:     sender,
 		DomainName: domainName,
-		Fee:        fee,
+		SalePrice:  salePrice,
 	}
 }
 
@@ -106,11 +106,11 @@ type ValidateDomainMessage struct {
 var _ sdk.Msg = ValidateDomainMessage{}
 
 // New cool message
-func NewValidateDomainMessage(sender sdk.Address, domainName string, fee uint64) ValidateDomainMessage {
+func NewValidateDomainMessage(sender sdk.Address, domainName string, owner sdk.Address) ValidateDomainMessage {
 	return ValidateDomainMessage{
 		Sender:     sender,
 		DomainName: domainName,
-		Fee:        fee,
+		Owner:      owner,
 	}
 }
 

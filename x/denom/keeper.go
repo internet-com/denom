@@ -25,14 +25,18 @@ type Keeper struct {
 	storeKey sdk.StoreKey // The (unexposed) key used to access the store from the Context.
 }
 
-type DomainClaim struct {
-	ClaimedBy sdk.Address
+type DomainBid struct {
+	Price    uint64
+	Expiry   uint64
+	Accepted bool
 }
 
 type Domain struct {
 	Owner       sdk.Address
 	ValidatedBy map[string]string
 	ClaimedBy   map[string]bool
+	SalePrice   uint64
+	Bids        map[string]DomainBid
 }
 
 func (k Keeper) GetBondedTokens(ctx sdk.Context, address sdk.Address) uint64 {
@@ -59,7 +63,7 @@ func (k Keeper) GetDomain(ctx sdk.Context, domainName string) (Domain, error) {
 		err := binary.Read(buf, binary.BigEndian, &domain)
 		return domain, err
 	} else {
-		return Domain{ClaimedBy: map[string]bool{}}, nil
+		return Domain{ClaimedBy: map[string]bool{}, ValidatedBy: map[string]string{}, Bids: map[string]DomainBid{}}, nil
 	}
 }
 
@@ -95,9 +99,24 @@ func (k Keeper) Validate(ctx sdk.Context, sender sdk.Address, domainName string,
 		}
 		// Modify the below line to check the bonded stake.
 		if votes >= 1 {
-			domain.ClaimedBy[owner.String()] = true
+			domain.ClaimedBy = map[string]bool{}
+			domain.ValidatedBy = map[string]string{}
 			domain.Owner = owner
 		}
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.BigEndian, &domain)
+		store.Set(domainNameBytes, buf.Bytes())
+	}
+}
+
+func (k Keeper) SellDomain(ctx sdk.Context, sender sdk.Address, domainName string, salePrice uint64) {
+	domain, err := k.GetDomain(ctx, domainName)
+	if err == nil {
+		if domain.Owner != nil && domain.Owner.String() == sender.String() {
+			domain.SalePrice = salePrice
+		}
+		store := ctx.KVStore(k.storeKey)
+		domainNameBytes := []byte(domainName)
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, &domain)
 		store.Set(domainNameBytes, buf.Bytes())

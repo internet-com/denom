@@ -35,6 +35,7 @@ func handleClaimDomainMessage(ctx sdk.Context, k Keeper, msg ClaimDomainMessage)
 // Handle QuizMsg This is the engine of your module
 func handleValidateDomainMessage(ctx sdk.Context, k Keeper, msg ValidateDomainMessage) sdk.Result {
 	//k.setTrend(ctx, msg.Cool)
+	k.Validate(ctx, msg.Sender, msg.DomainName, msg.Owner)
 	return sdk.Result{
 		Code: sdk.CodeOK,
 	}
@@ -43,6 +44,7 @@ func handleValidateDomainMessage(ctx sdk.Context, k Keeper, msg ValidateDomainMe
 // Handle QuizMsg This is the engine of your module
 func handleSetDomainForSaleMessage(ctx sdk.Context, k Keeper, msg SetDomainForSaleMessage) sdk.Result {
 	//correct := k.CheckTrend(ctx, msg.CoolAnswer)
+	k.SellDomain(ctx, msg.Sender, msg.DomainName, msg.SalePrice)
 
 	/*
 		if !correct {
@@ -60,9 +62,6 @@ func handleSetDomainForSaleMessage(ctx sdk.Context, k Keeper, msg SetDomainForSa
 			return err.Result()
 		}
 	*/
-
-	fmt.Println("Got message: " + msg.String())
-
 	return sdk.Result{
 		Code: sdk.CodeOK,
 	}

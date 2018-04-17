@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/builder"
 	"github.com/cosmos/cosmos-sdk/wire"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/svaishnavy/denom/x/denom"
 )
 
@@ -27,14 +29,14 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 
-			fee, err := strconv.ParseUint(viper.GetString("fee"), 10, 64)
+			salePrice, err := strconv.ParseUint(viper.GetString("price"), 10, 64)
 
 			//fee, err := strconv.ParseUint(args[1], 10, 64)
 			// create the message
 			if err != nil {
 				return err
 			}
-			msg := denom.NewSetDomainForSaleMessage(from, domainName, fee)
+			msg := denom.NewSetDomainForSaleMessage(from, domainName, salePrice)
 			fmt.Printf(msg.String())
 
 			// get account name
@@ -112,14 +114,16 @@ func ValidateDomainCommand(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 
-			fee, err := strconv.ParseUint(viper.GetString("fee"), 10, 64)
+			//fee, err := strconv.ParseUint(viper.GetString("fee"), 10, 64)
 
 			//fee, err := strconv.ParseUint(args[1], 10, 64)
 			// create the message
+			ownerStr := viper.GetString("owner")
+			owner, err := sdk.GetAddress(ownerStr)
 			if err != nil {
 				return err
 			}
-			msg := denom.NewValidateDomainMessage(from, domainName, fee)
+			msg := denom.NewValidateDomainMessage(from, domainName, owner)
 
 			// get account name
 			name := viper.GetString(client.FlagName)
@@ -134,6 +138,7 @@ func ValidateDomainCommand(cdc *wire.Codec) *cobra.Command {
 			return nil
 		},
 	}
-	command.Flags().StringP("domain", "d", "", "domain name")
+	command.Flags().StringP("domain", "d", "", "Domain name")
+	command.Flags().StringP("owner", "", "", "Address of owner")
 	return command
 }
