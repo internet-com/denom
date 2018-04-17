@@ -53,6 +53,7 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 		},
 	}
 	command.Flags().StringP("domain", "d", "", "domain name")
+	command.Flags().Int64("price", 0, "sale price for domain")
 	return command
 }
 
