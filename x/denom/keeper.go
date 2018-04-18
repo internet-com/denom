@@ -102,6 +102,7 @@ func (k Keeper) Validate(ctx sdk.Context, sender sdk.Address, domainName string,
 			domain.ClaimedBy = map[string]bool{}
 			domain.ValidatedBy = map[string]string{}
 			domain.Owner = owner
+			k.ck.AddCoins(ctx, owner, []sdk.Coin{sdk.Coin{Amount: 1000000000, Denom: "DNOM"}})
 		}
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, &domain)
