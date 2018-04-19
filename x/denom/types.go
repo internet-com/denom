@@ -74,7 +74,7 @@ func (msg SetDomainForSaleMessage) Type() string                            { re
 func (msg SetDomainForSaleMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg SetDomainForSaleMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg SetDomainForSaleMessage) String() string {
-	return fmt.Sprintf("SetDomainForSaleMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
+	return fmt.Sprintf("SetDomainForSaleMessage{Sender: %v, DomainName: %v, SalePrice: %v}", msg.Sender, msg.DomainName, msg.SalePrice)
 }
 
 // Validate Basic is used to quickly disqualify obviously invalid messages quickly
@@ -121,7 +121,7 @@ func (msg ValidateDomainMessage) Type() string                            { retu
 func (msg ValidateDomainMessage) Get(key interface{}) (value interface{}) { return nil }
 func (msg ValidateDomainMessage) GetSigners() []sdk.Address               { return []sdk.Address{msg.Sender} }
 func (msg ValidateDomainMessage) String() string {
-	return fmt.Sprintf("ClaimDomainMessage{Sender: %v, DomainName: %v}", msg.Sender, msg.DomainName)
+	return fmt.Sprintf("ClaimDomainMessage{Sender: %v, DomainName: %v, Owner: %v}", msg.Sender, msg.DomainName, msg.Owner)
 }
 
 // Validate Basic is used to quickly disqualify obviously invalid messages quickly

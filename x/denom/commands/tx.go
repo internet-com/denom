@@ -37,7 +37,6 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 			msg := denom.NewSetDomainForSaleMessage(from, domainName, salePrice)
-			fmt.Printf(msg.String())
 
 			// get account name
 			name := viper.GetString(client.FlagName)
