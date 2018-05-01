@@ -8,7 +8,9 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/builder"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/commands"
+
 	"github.com/cosmos/cosmos-sdk/wire"
 
 	"github.com/svaishnavy/denom/x/cool"
@@ -25,7 +27,9 @@ func QuizTxCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// get the from address from the name flag
-			from, err := builder.GetFromAddress()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			from, err := ctx.GetFromAddress()
+
 			if err != nil {
 				return err
 			}
@@ -37,7 +41,7 @@ func QuizTxCmd(cdc *wire.Codec) *cobra.Command {
 			name := viper.GetString(client.FlagName)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			res, err := builder.SignBuildBroadcast(name, msg, cdc)
+			res, err := ctx.SignBuildBroadcast(name, msg, cdc)
 			if err != nil {
 				return err
 			}
@@ -59,7 +63,9 @@ func SetTrendTxCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// get the from address from the name flag
-			from, err := builder.GetFromAddress()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			from, err := ctx.GetFromAddress()
+
 			if err != nil {
 				return err
 			}
@@ -71,7 +77,7 @@ func SetTrendTxCmd(cdc *wire.Codec) *cobra.Command {
 			msg := cool.NewSetTrendMsg(from, args[0])
 
 			// build and sign the transaction, then broadcast to Tendermint
-			res, err := builder.SignBuildBroadcast(name, msg, cdc)
+			res, err := ctx.SignBuildBroadcast(name, msg, cdc)
 			if err != nil {
 				return err
 			}

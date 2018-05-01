@@ -8,8 +8,9 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/builder"
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/wire"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/commands"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,7 +25,8 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			domainName := viper.GetString("domain")
 			// get the from address from the name flag
-			from, err := builder.GetFromAddress()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			from, err := ctx.GetFromAddress()
 			if err != nil {
 				return err
 			}
@@ -42,7 +44,7 @@ func SetDomainForSaleCommand(cdc *wire.Codec) *cobra.Command {
 			name := viper.GetString(client.FlagName)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			res, err := builder.SignBuildBroadcast(name, msg, cdc)
+			res, err := ctx.SignBuildBroadcast(name, msg, cdc)
 			if err != nil {
 				return err
 			}
@@ -68,7 +70,8 @@ func ClaimDomainCommand(cdc *wire.Codec) *cobra.Command {
 				return denom.ErrParameterMissing("domain")
 			}
 			// get the from address from the name flag
-			from, err := builder.GetFromAddress()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			from, err := ctx.GetFromAddress()
 			if err != nil {
 				return err
 			}
@@ -86,7 +89,7 @@ func ClaimDomainCommand(cdc *wire.Codec) *cobra.Command {
 			name := viper.GetString(client.FlagName)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			res, err := builder.SignBuildBroadcast(name, msg, cdc)
+			res, err := ctx.SignBuildBroadcast(name, msg, cdc)
 			if err != nil {
 				return err
 			}
@@ -109,7 +112,9 @@ func ValidateDomainCommand(cdc *wire.Codec) *cobra.Command {
 
 			domainName := viper.GetString("domain")
 			// get the from address from the name flag
-			from, err := builder.GetFromAddress()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			from, err := ctx.GetFromAddress()
+
 			if err != nil {
 				return err
 			}
@@ -129,7 +134,7 @@ func ValidateDomainCommand(cdc *wire.Codec) *cobra.Command {
 			name := viper.GetString(client.FlagName)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			res, err := builder.SignBuildBroadcast(name, msg, cdc)
+			res, err := ctx.SignBuildBroadcast(name, msg, cdc)
 			if err != nil {
 				return err
 			}

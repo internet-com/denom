@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -10,45 +9,41 @@ import (
 
 	abci "github.com/tendermint/abci/types"
 	"github.com/tendermint/tmlibs/cli"
-	cmn "github.com/tendermint/tmlibs/common"
 	dbm "github.com/tendermint/tmlibs/db"
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/version"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/svaishnavy/denom/app"
 )
 
 // democoindCmd is the entry point for this binary
 var (
+	context  = server.NewDefaultContext()
 	denomCmd = &cobra.Command{
-		Use:   "denom",
-		Short: "Denom Daemon (server)",
+		Use:               "denom",
+		Short:             "Denom Daemon (server)",
+		PersistentPreRunE: server.PersistentPreRunEFn(context),
 	}
 )
 
-// defaultOptions sets up the app_options for the
+// defaultAppState sets up the app_state for the
 // default genesis file
-func defaultOptions(args []string) (json.RawMessage, string, cmn.HexBytes, error) {
-	addr, secret, err := server.GenerateCoinKey()
+func defaultAppState(args []string, addr sdk.Address, coinDenom string) (json.RawMessage, error) {
+	baseJSON, err := server.DefaultGenAppState(args, addr, coinDenom)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, err
 	}
-	fmt.Println("Secret phrase to access coins:")
-	fmt.Println(secret)
-
-	opts := fmt.Sprintf(`{
-      "accounts": [{
-        "address": "%s",
-        "coins": [
-          {
-            "denom": "DNOM",
-            "amount": 9007199254740992
-          }
-        ]
-      }]
-    }`, addr)
-	return json.RawMessage(opts), "", nil, nil
+	var jsonMap map[string]json.RawMessage
+	err = json.Unmarshal(baseJSON, &jsonMap)
+	if err != nil {
+		return nil, err
+	}
+	jsonMap["cool"] = json.RawMessage(`{
+        "trend": "ice-cold"
+      }`)
+	bz, err := json.Marshal(jsonMap)
+	return json.RawMessage(bz), err
 }
 
 func generateApp(rootDir string, logger log.Logger) (abci.Application, error) {
@@ -79,18 +74,8 @@ func generateApp(rootDir string, logger log.Logger) (abci.Application, error) {
 }
 
 func main() {
-	// TODO: set logger through CLI
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).
-		With("module", "main")
 
-	denomCmd.AddCommand(
-		server.InitCmd(defaultOptions, logger),
-		server.StartCmd(generateApp, logger),
-		server.UnsafeResetAllCmd(logger),
-		server.ShowNodeIdCmd(logger),
-		server.ShowValidatorCmd(logger),
-		version.VersionCmd,
-	)
+	server.AddCommands(denomCmd, defaultAppState, generateApp, context)
 
 	// prepare and add flags
 	rootDir := os.ExpandEnv("$HOME/.denom")

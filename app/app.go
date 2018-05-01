@@ -40,13 +40,16 @@ type DenomApp struct {
 
 	// Manage getting and setting accounts
 	accountMapper sdk.AccountMapper
+	// Handle fees
+	feeHandler sdk.FeeHandler
 }
 
 func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 	// create your application object
+	var cdc = MakeCodec()
 	var app = &DenomApp{
 		BaseApp:            bam.NewBaseApp(appName, logger, dbs["main"]),
-		cdc:                MakeCodec(),
+		cdc:                cdc,
 		capKeyMainStore:    sdk.NewKVStoreKey("main"),
 		capKeyAccountStore: sdk.NewKVStoreKey("acc"),
 		capKeyIBCStore:     sdk.NewKVStoreKey("ibc"),
@@ -54,7 +57,8 @@ func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 	}
 
 	// define the accountMapper
-	app.accountMapper = auth.NewAccountMapperSealed(
+	app.accountMapper = auth.NewAccountMapper(
+		cdc,
 		app.capKeyMainStore, // target store
 		&types.AppAccount{}, // prototype
 	)
@@ -73,6 +77,9 @@ func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 		AddRoute("ibc", ibc.NewHandler(ibcMapper, coinKeeper)).
 		AddRoute("simplestake", simplestake.NewHandler(stakeKeeper))
 
+		// Define the feeHandler.
+	app.feeHandler = auth.BurnFeeHandler
+
 	// initialize BaseApp
 	app.SetTxDecoder(app.txDecoder)
 	app.SetInitChainer(app.initChainerFn(denomKeeper))
@@ -82,7 +89,7 @@ func NewDenomApp(logger log.Logger, dbs map[string]dbm.DB) *DenomApp {
 	app.MountStoreWithDB(app.capKeyStakingStore, sdk.StoreTypeIAVL, dbs["staking"])
 	// NOTE: Broken until #532 lands
 	//app.MountStoresIAVL(app.capKeyMainStore, app.capKeyIBCStore, app.capKeyStakingStore)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper))
+	app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeHandler))
 	err := app.LoadLatestVersion(app.capKeyMainStore)
 	if err != nil {
 		cmn.Exit(err.Error())
