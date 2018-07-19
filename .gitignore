@@ -1,4 +1,4 @@
-./bin
+bin/*
 Gopkg.lock
 Gopkg.toml
 vendor/*
