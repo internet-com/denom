@@ -8,15 +8,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/svaishnavy/denom/app"
-	"github.com/svaishnavy/denom/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
 	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
 	"github.com/spf13/cobra"
+	"github.com/svaishnavy/denom/app"
+	"github.com/svaishnavy/denom/types"
 	"github.com/tendermint/tendermint/libs/cli"
+
+	denomcmd "github.com/svaishnavy/denom/cmd/denomcli/commands"
 )
 
 // rootCmd is the entry point for this binary
@@ -42,6 +44,8 @@ func main() {
 	rpc.AddCommands(rootCmd)
 	rootCmd.AddCommand(client.LineBreak)
 	tx.AddCommands(rootCmd, cdc)
+	rootCmd.AddCommand(client.LineBreak)
+	rootCmd.AddCommand(denomcmd.SignCommand())
 	rootCmd.AddCommand(client.LineBreak)
 
 	// add query/post commands (custom to binary)
