@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"fmt"
-
 	"encoding/base64"
+	"errors"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -32,8 +32,19 @@ func SignCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			base64Str := base64.StdEncoding.EncodeToString(signature.Bytes())
-			fmt.Println(base64Str)
+			info, err := keybase.Get(account)
+			if err != nil {
+				return err
+			}
+			// Verifying again to handle private key leaks due to the nature of ED25519
+			// More context here: https://github.com/jedisct1/libsodium/issues/170
+			pubKey := info.GetPubKey()
+			if pubKey.VerifyBytes([]byte(data), signature) {
+				base64Str := base64.StdEncoding.EncodeToString(signature.Bytes())
+				fmt.Println(base64Str)
+			} else {
+				return errors.New("Unable to sign data")
+			}
 			return nil
 		},
 	}
