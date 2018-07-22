@@ -7,10 +7,10 @@ type DomainItem struct {
 }
 
 type DomainBid struct {
-	SealedBid      string
-	Price          uint64
-	TimeToTransfer uint64
-	Arbitrer       string
+	SealedBid string
+	Price     uint64
+	TimeBy    uint64
+	Arbitrer  string
 }
 
 type Keeper struct {
@@ -21,9 +21,7 @@ func (k Keeper) RegisterDomain() {
 }
 
 func (k Keeper) ValidateDomain() {
-
 }
 
 func (k Keeper) SetDomainForSale() {
-
 }
