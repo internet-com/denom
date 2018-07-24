@@ -53,7 +53,7 @@ contract DnomDistribution {
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
-        if (msg.value >= 0) {
+        if (msg.value > 0) {
             claim.verificationFeePaid = msg.value;
         }
         domainsRegistered[domainName].claims[claim.denomAddress] = claim;
@@ -72,7 +72,7 @@ contract DnomDistribution {
         claim.registeredDay = currentDay;
         if (domainsRegistered[domainName].registered) {
             if (domainsRegistered[domainName].claims[denomAddress].claimed) {
-                if (msg.value >= 0) {
+                if (msg.value > 0) {
                     domainsRegistered[domainName].claims[denomAddress].verificationFeePaid += msg.value;
                 }
             } else {
