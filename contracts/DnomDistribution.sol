@@ -48,12 +48,17 @@ contract DnomDistribution {
         }
     }
     
-    constructor() public {
+    constructor(string denomPublicKey, string denomAddress) public {
         initializedTime = block.timestamp;
         verificationFee = 1000000000000000000 / 10; //0.1 ETH
         maxRegistrationDays = 100;
         waitPeriod = maxRegistrationDays + 7;
         owner = msg.sender;
+        Claim memory claim;
+        claim.denomPublicKey = denomPublicKey;
+        claim.denomAddress = denomAddress;
+        claim.registeredDay = 0;
+        addDomainClaim("denom.org", claim);
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
@@ -63,11 +68,15 @@ contract DnomDistribution {
         domainsRegistered[domainName].claims[msg.sender] = claim;
         domainsRegistered[domainName].claims[msg.sender].claimed = true;
         domainsRegistered[domainName].claimAddress.push(msg.sender);
+        if (!domainsRegistered[domainName].registered) {
+            domainsRegistered[domainName].registered = true;
+            registeredDomains.push(domainName);
+        }
     }
     
     function claimDomain(string domainName, string denomPublicKey, string denomAddress) public payable {
-        uint16 currentDay = uint16 ((block.timestamp - initializedTime) / ONE_DAY);
-        if ((msg.value > 0 && msg.value < verificationFee) || currentDay >= maxRegistrationDays) {
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        if ((msg.value > 0 && msg.value < verificationFee) || currentDay > maxRegistrationDays) {
             revert();
         }
         Claim memory claim;
@@ -79,14 +88,9 @@ contract DnomDistribution {
                 if (msg.value > 0) {
                     domainsRegistered[domainName].claims[msg.sender].verificationFeePaid += msg.value;
                 }
-            } else {
-                addDomainClaim(domainName, claim);
             }
-        } else {
-            addDomainClaim(domainName, claim);
-            domainsRegistered[domainName].registered = true;
-            registeredDomains.push(domainName);
         }
+        addDomainClaim(domainName, claim);
     }
     
     function verifyDomain(string domainName, address senderAddress, uint256 tokensAllocated) public onlyOwner {
@@ -99,11 +103,18 @@ contract DnomDistribution {
     }
     
     function cancelClaim(string domainName) public {
-        uint16 currentDay = uint16 ((block.timestamp - initializedTime) / ONE_DAY);
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
         if (currentDay <= waitPeriod) {
             if (domainsRegistered[domainName].registered) {
                 if (domainsRegistered[domainName].claims[msg.sender].claimed) {
                     domainsRegistered[domainName].claims[msg.sender].claimed = false;
+                    if (domainsRegistered[domainName].claims[msg.sender].verificationFeePaid > 0) {
+                        uint256 feePaid = domainsRegistered[domainName].claims[msg.sender].verificationFeePaid;
+                        domainsRegistered[domainName].claims[msg.sender].verificationFeePaid = 0;
+                        if (!msg.sender.send(feePaid)) {
+                            domainsRegistered[domainName].claims[msg.sender].verificationFeePaid = feePaid;
+                        }
+                    }
                 }
             }
         }
@@ -137,7 +148,7 @@ contract DnomDistribution {
     }
     
     function withdrawVerificationFee() public onlyOwner {
-        uint16 currentDay = uint16 ((block.timestamp - initializedTime) / ONE_DAY);
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
         if (currentDay > waitPeriod) {
             msg.sender.transfer(address(this).balance);
         }
