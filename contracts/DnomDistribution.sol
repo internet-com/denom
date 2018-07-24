@@ -14,15 +14,15 @@ contract DnomDistribution {
     struct Domain {
         bool registered;
         string domainName;
-        string owner;
+        address owner;
         uint256 tokensAllocated; // Will be set if verification was successful
-        mapping(string => Claim) claims; // List of claims for the domain
-        string[] claimAddress;
+        mapping(address => Claim) claims; // List of claims for the domain
+        address[] claimAddress;
     }
     
     mapping(string => Domain) domainsRegistered;
     
-    string[] public domainsRegisteredByDay;
+    string[] public registeredDomains;
     
     address public owner;
     
@@ -40,6 +40,8 @@ contract DnomDistribution {
     
     uint256 public maxRegistrationDays;
     
+    uint256 public waitPeriod;
+    
     modifier onlyOwner {
         if (msg.sender == owner) {
             _;
@@ -50,15 +52,16 @@ contract DnomDistribution {
         initializedTime = block.timestamp;
         verificationFee = 1000000000000000000 / 10; //0.1 ETH
         maxRegistrationDays = 100;
+        waitPeriod = maxRegistrationDays + 7;
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
         if (msg.value > 0) {
             claim.verificationFeePaid = msg.value;
         }
-        domainsRegistered[domainName].claims[claim.denomAddress] = claim;
-        domainsRegistered[domainName].claims[claim.denomAddress].claimed = true;
-        domainsRegistered[domainName].claimAddress.push(claim.denomAddress);
+        domainsRegistered[domainName].claims[msg.sender] = claim;
+        domainsRegistered[domainName].claims[msg.sender].claimed = true;
+        domainsRegistered[domainName].claimAddress.push(msg.sender);
     }
     
     function claimDomain(string domainName, string denomPublicKey, string denomAddress) public payable {
@@ -71,20 +74,65 @@ contract DnomDistribution {
         claim.denomAddress = denomAddress;
         claim.registeredDay = currentDay;
         if (domainsRegistered[domainName].registered) {
-            if (domainsRegistered[domainName].claims[denomAddress].claimed) {
+            if (domainsRegistered[domainName].claims[msg.sender].claimed) {
                 if (msg.value > 0) {
-                    domainsRegistered[domainName].claims[denomAddress].verificationFeePaid += msg.value;
+                    domainsRegistered[domainName].claims[msg.sender].verificationFeePaid += msg.value;
                 }
             } else {
                 addDomainClaim(domainName, claim);
             }
         } else {
             addDomainClaim(domainName, claim);
+            domainsRegistered[domainName].registered = true;
+            registeredDomains.push(domainName);
         }
     }
     
-    function verifyDomain(string domainName, string denomAddress, uint256 tokensAllocated) public onlyOwner {
-        
+    function verifyDomain(string domainName, address senderAddress, uint256 tokensAllocated) public onlyOwner {
+        if (domainsRegistered[domainName].registered) {
+            if (domainsRegistered[domainName].claims[senderAddress].claimed) {
+                domainsRegistered[domainName].tokensAllocated = tokensAllocated;
+                domainsRegistered[domainName].owner = senderAddress;
+            }
+        }
+    }
+    
+    function cancelClaim(string domainName) public {
+        uint16 currentDay = uint16 ((block.timestamp - initializedTime) / ONE_DAY);
+        if (currentDay <= waitPeriod) {
+            if (domainsRegistered[domainName].registered) {
+                if (domainsRegistered[domainName].claims[msg.sender].claimed) {
+                    domainsRegistered[domainName].claims[msg.sender].claimed = false;
+                }
+            }
+        }
+    }
+    
+    function getTotalDomains() public constant returns(uint256) {
+        return registeredDomains.length;
+    }
+    
+    function getDomainAt(uint256 index) public constant returns(string) {
+        return registeredDomains[index];
+    }
+    
+    function getTotalDomainClaims(string domainName) public constant returns(uint256) {
+        return domainsRegistered[domainName].claimAddress.length;
+    }
+    
+    function getDomainClaimAt(string domainName, uint256 index) public constant returns(address) {
+        return domainsRegistered[domainName].claimAddress[index];
+    }
+    
+    function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, string denomPublicKey, uint16 registeredDay, uint256 verificationFeePaid) {
+        denomAddress = domainsRegistered[domainName].claims[claimAddress].denomAddress;
+        denomPublicKey = domainsRegistered[domainName].claims[claimAddress].denomPublicKey;
+        registeredDay = domainsRegistered[domainName].claims[claimAddress].registeredDay;
+        verificationFeePaid = domainsRegistered[domainName].claims[claimAddress].verificationFeePaid;
+    }
+    
+    function getDomainOwner(string domainName) public constant returns(address claimAddress) {
+        return domainsRegistered[domainName].owner;
     }
     
     function publishGenesis(string url) public onlyOwner {
