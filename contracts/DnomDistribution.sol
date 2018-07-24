@@ -53,6 +53,7 @@ contract DnomDistribution {
         verificationFee = 1000000000000000000 / 10; //0.1 ETH
         maxRegistrationDays = 100;
         waitPeriod = maxRegistrationDays + 7;
+        owner = msg.sender;
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
@@ -133,6 +134,13 @@ contract DnomDistribution {
     
     function getDomainOwner(string domainName) public constant returns(address claimAddress) {
         return domainsRegistered[domainName].owner;
+    }
+    
+    function withdrawVerificationFee() public onlyOwner {
+        uint16 currentDay = uint16 ((block.timestamp - initializedTime) / ONE_DAY);
+        if (currentDay > waitPeriod) {
+            msg.sender.transfer(address(this).balance);
+        }
     }
     
     function publishGenesis(string url) public onlyOwner {
