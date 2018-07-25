@@ -20,34 +20,8 @@ contract DnomDistribution {
         address[] claimAddress;
     }
 
-    struct Validator {
-        string denomAddress;
-        string denomPublicKey;
-        string name;
-        string website;
-        bool exists;
-    }
-
-    struct Delegator {
-        string denomAddress;
-        string validator;
-        string signature;
-        uint16 percentage;
-        bool exists;
-    }
-
-    mapping(address => string) genesisURLs;
-    
     mapping(string => Domain) domainsRegistered;
 
-    mapping(address => Validator) validators;
-
-    mapping(address => Delegator) delegators;
-   
-    address[] delegatorList; 
-    
-    address[] validatorList;
-    
     string[] public registeredDomains;
     
     address public owner;
@@ -178,65 +152,4 @@ contract DnomDistribution {
         }
     }
 
-    function registerValidator(string validatorName, string website, string denomAddress, string denomPublicKey) {
-        Validator memory validator;
-        validator.name = validatorName;
-        validator.website = website;
-        validator.denomAddress = denomAddress;
-        validator.denomPublicKey = denomPublicKey;
-        if (!validators[msg.sender].exists) {
-            validator.exists = true;
-            validatorList.push(msg.sender);
-        }
-        validators[msg.sender] = validator;
-    }
-
-    function getTotalValidators() public constant returns(uint256) {
-    	return validatorList.length;
-    }
-
-    function getValidatorAt(uint256 index) public constant returns(address ethAddr, string validatorName, string website, string denomAddress, string denomPublicKey) {
-	ethAddr = validatorList[index];
-        validatorName = validators[ethAddr].name;
-        website = validators[ethAddr].website;
-        denomAddress = validators[ethAddr].denomAddress;
-        denomPublicKey = validators[ethAddr].denomPublicKey;
-    }
-
-    function getTotalDelegators() public constant returns(uint256) {
-        return delegatorList.length;
-    }
-
-    function getDelegatorAt(uint256 index) public constant returns(address ethAddr, string denomAddress, string validator, uint16 percentage, string signature) {
-        ethAddr = delegatorList[index];
-        denomAddress = delegators[ethAddr].denomAddress;
-        validator = delegators[ethAddr].validator;
-        percentage = delegators[ethAddr].percentage;
-        signature = delegators[ethAddr].signature;
-    }
-
-    function delegateToValidator(string denomAddress, string validatorDenomAddress, uint16 percentage, string signature) {
-        Delegator memory delegator;
-        delegator.denomAddress = denomAddress;
-        delegator.validator = validatorDenomAddress;
-        delegator.signature = signature;
-        delegator.percentage = percentage;
-        if (!delegators[msg.sender].exists) {
-            delegator.exists = true;
-            delegatorList.push(msg.sender);
-        }
-    	delegators[msg.sender] = delegator;
-    }
-    
-    function publishGenesis(string url) public {
-	uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
-        if (currentDay > waitPeriod) {
-            genesisURLs[msg.sender] = url;
-	}
-    }
-
-    function getGenesis(address publisher) public constant {
-        return genesisURLs[publisher];
-    }
-    
 }
