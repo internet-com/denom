@@ -13,7 +13,6 @@ contract DnomDistribution {
         bool registered;
         string domainName;
         address owner;
-        string verificationSignature;
         mapping(address => Claim) claims; // List of claims for the domain
         address[] claimAddress;
     }
@@ -89,11 +88,10 @@ contract DnomDistribution {
         addDomainClaim(domainName, claim);
     }
     
-    function verifyDomain(string domainName, address senderAddress, string signature) public onlyOwner {
+    function verifyDomain(string domainName, address senderAddress) public onlyOwner {
         if (domainsRegistered[domainName].registered) {
             if (domainsRegistered[domainName].claims[senderAddress].claimed) {
                 domainsRegistered[domainName].owner = senderAddress;
-                domainsRegistered[domainName].verificationSignature = signature;
             }
         }
     }
