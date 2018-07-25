@@ -19,6 +19,8 @@ contract DnomDistribution {
         mapping(address => Claim) claims; // List of claims for the domain
         address[] claimAddress;
     }
+
+    mapping(address => string) genesisURLs;
     
     mapping(string => Domain) domainsRegistered;
     
@@ -33,8 +35,6 @@ contract DnomDistribution {
     uint256 public dayEnd = 0;
     
     uint256 public ONE_DAY = 24 * 60 * 60 * 1000;
-    
-    string public genesisURL;
     
     uint256 public verificationFee;
     
@@ -154,8 +154,15 @@ contract DnomDistribution {
         }
     }
     
-    function publishGenesis(string url) public onlyOwner {
-        genesisURL = url;
+    function publishGenesis(string url) public {
+	uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        if (currentDay > waitPeriod) {
+            genesisURLs[msg.sender] = url;
+	}
+    }
+
+    function getGenesis(address publisher) public constant {
+        return genesisURLs[publisher];
     }
     
 }
