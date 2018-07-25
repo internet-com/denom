@@ -10,12 +10,18 @@ contract DnomGenesisValidators {
         string website;
         bool exists;
     }
+    
+    struct Delegation {
+        string signature;
+        uint16 percentage;
+        bool exists;
+    }
 
     struct Delegator {
         string denomAddress;
-        string validator;
-        string signature;
-        uint16 percentage;
+        mapping (string => Delegation) delegation;
+        string[] delegationList;
+        uint16 percentageDelegated;
         bool exists;
     }
 
@@ -58,25 +64,48 @@ contract DnomGenesisValidators {
         return delegatorList.length;
     }
 
-    function getDelegatorAt(uint256 index) public constant returns(address ethAddr, string denomAddress, string validator, uint16 percentage, string signature) {
+    function getDelegatorAt(uint256 index) public constant returns(address ethAddr, string denomAddress, uint256 totalDelegations) {
         ethAddr = delegatorList[index];
         denomAddress = delegators[ethAddr].denomAddress;
-        validator = delegators[ethAddr].validator;
-        percentage = delegators[ethAddr].percentage;
-        signature = delegators[ethAddr].signature;
+        totalDelegations = delegators[ethAddr].delegationList.length;
+    }
+    
+    function getDelegationAt(address ethAddr, uint256 index) public constant returns(string validatorDenomAddress, uint16 percentage, string signature, bool isValid) {
+        validatorDenomAddress = delegators[ethAddr].delegationList[index];
+        percentage = delegators[ethAddr].delegations[validatorDenomAddress].percentage;
+        signature = delegators[ethAddr].delegations[validatorDenomAddress].signature;
+        isValid = delegators[ethAddr].delegations[validatorDenomAddress].exists;
     }
 
     function delegateToValidator(string denomAddress, string validatorDenomAddress, uint16 percentage, string signature) public {
-        Delegator memory delegator;
-        delegator.denomAddress = denomAddress;
-        delegator.validator = validatorDenomAddress;
-        delegator.signature = signature;
-        delegator.percentage = percentage;
+	require(delegators[msg.sender].percentageDelegated + percentage <= 100);
         if (!delegators[msg.sender].exists) {
+            Delegator memory delegator;
+            delegator.denomAddress = denomAddress;
             delegator.exists = true;
             delegatorList.push(msg.sender);
+            delegators[msg.sender] = delegator;
         }
-        delegators[msg.sender] = delegator;
+        if (!delegators[msg.sender].delegations[validatorDenomAddress].exists) {
+            Delegation memory delegation;
+            delegation.signature = signature;   
+            delegation.percentage = percentage;
+            delegation.exists = true;
+            delegators[msg.sender].delegations[validatorDenomAddress] = delegation;
+            delegators[msg.sender].percentageDelegated += percentage;
+            delegators[msg.sender].delegationList.push(validatorDenomAddress);
+        } else {
+            delegators[msg.sender].percentageDelegated -= delegators[msg.sender].delegations[validatorDenomAddress].percentage;
+            delegators[msg.sender].percentageDelegated += percentage;
+            delegators[msg.sender].delegations[validatorDenomAddress].percentage = percentage;
+            delegators[msg.sender].delegations[validatorDenomAddress].signature = signature;
+        }
+    }
+
+    function invalidateDelegation(string denomAddress, validatorDenomAddress) public {
+        delegators[msg.sender].delegations[validatorDenomAddress].exists = false;
+        delegators[msg.sender].percentageDelegated -= delegators[msg.sender].delegations[validatorDenomAddress].percentage;
+        delegators[msg.sender].delegations[validatorDenomAddress].percentage = 0;
     }
 
 }
