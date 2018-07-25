@@ -2,7 +2,7 @@ pragma solidity ^0.4.19;
 
 contract DnomGenesis {
     
-    constructor() {
+    constructor() public {
     }
 
     struct Genesis {
