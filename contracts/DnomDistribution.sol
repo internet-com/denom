@@ -1,8 +1,6 @@
 pragma solidity ^0.4.19;
 contract DnomDistribution {
     
-    uint64 public tokensDistributed;
-    
     struct Claim {
         string denomPublicKey;
         string denomAddress;
@@ -15,7 +13,7 @@ contract DnomDistribution {
         bool registered;
         string domainName;
         address owner;
-        uint256 tokensAllocated; // Will be set if verification was successful
+        string signature;
         mapping(address => Claim) claims; // List of claims for the domain
         address[] claimAddress;
     }
@@ -91,11 +89,11 @@ contract DnomDistribution {
         addDomainClaim(domainName, claim);
     }
     
-    function verifyDomain(string domainName, address senderAddress, uint256 tokensAllocated) public onlyOwner {
+    function verifyDomain(string domainName, address senderAddress, string signature) public onlyOwner {
         if (domainsRegistered[domainName].registered) {
             if (domainsRegistered[domainName].claims[senderAddress].claimed) {
-                domainsRegistered[domainName].tokensAllocated = tokensAllocated;
                 domainsRegistered[domainName].owner = senderAddress;
+                domainsRegistered[domainName].signature = signature;
             }
         }
     }
