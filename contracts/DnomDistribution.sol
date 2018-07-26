@@ -2,7 +2,6 @@ pragma solidity ^0.4.19;
 contract DnomDistribution {
     
     struct Claim {
-        string denomPublicKey;
         string denomAddress;
         uint16 registeredDay;
         uint256 verificationFeePaid; // Optional verification fee
@@ -43,14 +42,13 @@ contract DnomDistribution {
         }
     }
     
-    constructor(string denomPublicKey, string denomAddress) public {
+    constructor(string denomAddress) public {
         initializedTime = block.timestamp;
         verificationFee = 1000000000000000000 / 10; //0.1 ETH
         maxRegistrationDays = 100;
         waitPeriod = maxRegistrationDays + 7;
         owner = msg.sender;
         Claim memory claim;
-        claim.denomPublicKey = denomPublicKey;
         claim.denomAddress = denomAddress;
         claim.registeredDay = 0;
         addDomainClaim("denom.org", claim);
@@ -69,13 +67,12 @@ contract DnomDistribution {
         }
     }
     
-    function claimDomain(string domainName, string denomPublicKey, string denomAddress) public payable {
+    function claimDomain(string domainName, string denomAddress) public payable {
         uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
         if ((msg.value > 0 && msg.value < verificationFee) || currentDay > maxRegistrationDays) {
             revert();
         }
         Claim memory claim;
-        claim.denomPublicKey = denomPublicKey;
         claim.denomAddress = denomAddress;
         claim.registeredDay = currentDay;
         if (domainsRegistered[domainName].registered) {
@@ -130,9 +127,8 @@ contract DnomDistribution {
         return domainsRegistered[domainName].claimAddress[index];
     }
     
-    function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, string denomPublicKey, uint16 registeredDay, uint256 verificationFeePaid) {
+    function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, uint16 registeredDay, uint256 verificationFeePaid) {
         denomAddress = domainsRegistered[domainName].claims[claimAddress].denomAddress;
-        denomPublicKey = domainsRegistered[domainName].claims[claimAddress].denomPublicKey;
         registeredDay = domainsRegistered[domainName].claims[claimAddress].registeredDay;
         verificationFeePaid = domainsRegistered[domainName].claims[claimAddress].verificationFeePaid;
     }
