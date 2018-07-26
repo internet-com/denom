@@ -7,9 +7,7 @@ contract DnomGenesis {
 
     struct Genesis {
         string url;
-        string seed;
         uint256 time;
-        string signature;
         bool exists;
     }
     
@@ -17,16 +15,14 @@ contract DnomGenesis {
 
     address[] genesisList; 
     
-    function publishGenesis(string url, string seed, string signature) public {
+    function publishGenesis(string url) public {
         Genesis memory genesis;
         genesis.url = url;
-        genesis.seed = seed;
         genesis.time = block.timestamp;
-        genesis.signature = signature;
         if (!publishedGenesis[msg.sender].exists) {
             genesis.exists = true;
             genesisList.push(msg.sender);
-	}
+	    }
         publishedGenesis[msg.sender] = genesis;
     }
 
@@ -34,10 +30,12 @@ contract DnomGenesis {
         return genesisList.length;
     }
    
-    function getGenesisAt(uint256 index) public constant returns(address ethAddr, string url, string seed, string signature) {
+    function getGenesisAt(uint256 index) public constant returns(address ethAddr, string url) {
         ethAddr = genesisList[index];
         url = publishedGenesis[ethAddr].url;
-        seed = publishedGenesis[ethAddr].seed;
-        signature = publishedGenesis[ethAddr].signature; 
+    }
+    
+    function getGenesisBy(address ethAddr) public constant returns(string url) {
+        url = publishedGenesis[ethAddr].url;
     }
 }
