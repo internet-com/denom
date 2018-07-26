@@ -2,7 +2,19 @@ pragma solidity ^0.4.19;
 
 contract DnomGenesis {
     
-    constructor() public {
+    uint256 initializedTime = 0;
+    
+    uint16 genesisPublishStart = 0;
+    
+    uint16 genesisPublishEnd = 0;
+    
+    uint256 public ONE_DAY = 24 * 60 * 60 * 1000;
+    
+    constructor(uint16 _genesisPublishStart, uint16 _genesisPublishEnd) public {
+        require(_genesisPublishStart <= _genesisPublishEnd);
+        initializedTime = block.timestamp;
+        genesisPublishStart = _genesisPublishStart;
+        genesisPublishEnd = _genesisPublishEnd;
     }
 
     struct Genesis {
@@ -16,6 +28,8 @@ contract DnomGenesis {
     address[] genesisList; 
     
     function publishGenesis(string url) public {
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        require (currentDay >= genesisPublishStart && currentDay <= genesisPublishEnd);
         Genesis memory genesis;
         genesis.url = url;
         genesis.time = block.timestamp;

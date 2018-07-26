@@ -4,7 +4,6 @@ contract DnomDistribution {
     struct Claim {
         string denomAddress;
         uint16 registeredDay;
-        uint256 verificationFeePaid; // Optional verification fee
         bool claimed;
     }
     
@@ -30,11 +29,7 @@ contract DnomDistribution {
     
     uint256 public ONE_DAY = 24 * 60 * 60 * 1000;
     
-    uint256 public verificationFee;
-    
     uint256 public maxRegistrationDays;
-    
-    uint256 public waitPeriod;
     
     modifier onlyOwner {
         if (msg.sender == owner) {
@@ -42,22 +37,17 @@ contract DnomDistribution {
         }
     }
     
-    constructor(string denomAddress) public {
+    constructor(uint16 registrationDays) public {
         initializedTime = block.timestamp;
-        verificationFee = 1000000000000000000 / 10; //0.1 ETH
-        maxRegistrationDays = 100;
-        waitPeriod = maxRegistrationDays + 7;
+        maxRegistrationDays = registrationDays;
         owner = msg.sender;
         Claim memory claim;
-        claim.denomAddress = denomAddress;
+        claim.denomAddress = "0x0000"; // Change this
         claim.registeredDay = 0;
         addDomainClaim("denom.org", claim);
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
-        if (msg.value > 0) {
-            claim.verificationFeePaid = msg.value;
-        }
         domainsRegistered[domainName].claims[msg.sender] = claim;
         domainsRegistered[domainName].claims[msg.sender].claimed = true;
         domainsRegistered[domainName].claimAddress.push(msg.sender);
@@ -67,19 +57,16 @@ contract DnomDistribution {
         }
     }
     
-    function claimDomain(string domainName, string denomAddress) public payable {
+    function claimDomain(string domainName, string denomAddress) public {
         uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
-        if ((msg.value > 0 && msg.value < verificationFee) || currentDay > maxRegistrationDays) {
-            revert();
-        }
+        require (currentDay <= maxRegistrationDays);
         Claim memory claim;
         claim.denomAddress = denomAddress;
         claim.registeredDay = currentDay;
         if (domainsRegistered[domainName].registered) {
             if (domainsRegistered[domainName].claims[msg.sender].claimed) {
-                if (msg.value > 0) {
-                    domainsRegistered[domainName].claims[msg.sender].verificationFeePaid += msg.value;
-                }
+                // Set denomAddress if it has changed
+                return ;
             }
         }
         addDomainClaim(domainName, claim);
@@ -95,17 +82,10 @@ contract DnomDistribution {
     
     function cancelClaim(string domainName) public {
         uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
-        if (currentDay <= waitPeriod) {
+        if (currentDay <= maxRegistrationDays) {
             if (domainsRegistered[domainName].registered) {
                 if (domainsRegistered[domainName].claims[msg.sender].claimed) {
                     domainsRegistered[domainName].claims[msg.sender].claimed = false;
-                    if (domainsRegistered[domainName].claims[msg.sender].verificationFeePaid > 0) {
-                        uint256 feePaid = domainsRegistered[domainName].claims[msg.sender].verificationFeePaid;
-                        domainsRegistered[domainName].claims[msg.sender].verificationFeePaid = 0;
-                        if (!msg.sender.send(feePaid)) {
-                            domainsRegistered[domainName].claims[msg.sender].verificationFeePaid = feePaid;
-                        }
-                    }
                 }
             }
         }
@@ -127,21 +107,13 @@ contract DnomDistribution {
         return domainsRegistered[domainName].claimAddress[index];
     }
     
-    function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, uint16 registeredDay, uint256 verificationFeePaid) {
+    function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, uint16 registeredDay) {
         denomAddress = domainsRegistered[domainName].claims[claimAddress].denomAddress;
         registeredDay = domainsRegistered[domainName].claims[claimAddress].registeredDay;
-        verificationFeePaid = domainsRegistered[domainName].claims[claimAddress].verificationFeePaid;
     }
     
     function getDomainOwner(string domainName) public constant returns(address claimAddress) {
         return domainsRegistered[domainName].owner;
-    }
-    
-    function withdrawVerificationFee() public onlyOwner {
-        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
-        if (currentDay > waitPeriod) {
-            msg.sender.transfer(address(this).balance);
-        }
     }
 
 }

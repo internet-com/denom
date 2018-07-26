@@ -2,7 +2,17 @@ pragma solidity ^0.4.19;
 
 contract DnomGenesisValidators {
     
-    constructor() public {
+    uint16 public delegationPeriodStart;
+    
+    uint16 public delegationPeriodEnd;
+    
+    uint256 initializedTime = 0;
+    
+    constructor(uint16 _delegationPeriodStart, uint16 _delegationPeriodEnd) public {
+        require(_delegationPeriodStart <= _delegationPeriodEnd);
+        initializedTime = block.timestamp;
+        delegationPeriodStart = _delegationPeriodStart;
+        delegationPeriodEnd = _delegationPeriodEnd;
     }
 
     struct Validator {
@@ -35,8 +45,14 @@ contract DnomGenesisValidators {
     address[] delegatorList;
 
     address[] validatorList;
+    
+    uint256 public ONE_DAY = 24 * 60 * 60 * 1000;
+    
+    
 
     function registerValidator(string validatorName, string website, string denomAddress, string denomPublicKey, string signature) public {
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        require(delegationPeriodStart >= currentDay && currentDay <= delegationPeriodEnd);
         Validator memory validator;
         validator.name = validatorName;
         validator.website = website;
@@ -81,6 +97,8 @@ contract DnomGenesisValidators {
     }
 
     function delegateToValidator(string denomAddress, string validatorDenomAddress, uint16 percentage, string signature) public {
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        require(delegationPeriodStart >= currentDay && currentDay <= delegationPeriodEnd);
 	require(delegators[msg.sender].percentageDelegated + percentage <= 100);
         if (!delegators[msg.sender].exists) {
             Delegator memory delegator;
@@ -106,6 +124,8 @@ contract DnomGenesisValidators {
     }
 
     function invalidateDelegation(string validatorDenomAddress) public {
+        uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
+        require(delegationPeriodStart >= currentDay && currentDay <= delegationPeriodEnd);
         delegators[msg.sender].delegation[validatorDenomAddress].exists = false;
         delegators[msg.sender].percentageDelegated -= delegators[msg.sender].delegation[validatorDenomAddress].percentage;
         delegators[msg.sender].delegation[validatorDenomAddress].percentage = 0;
