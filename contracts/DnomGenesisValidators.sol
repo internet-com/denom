@@ -78,6 +78,18 @@ contract DnomGenesisValidators {
         denomPublicKey = validators[ethAddr].denomPublicKey;
         signature = validators[ethAddr].signature;
     }
+    
+    function getValidator(address ethAddr) public constant returns(string validatorName, string website, string denomAddress, string denomPublicKey, string signature) {
+        validatorName = validators[ethAddr].name;
+        website = validators[ethAddr].website;
+        denomAddress = validators[ethAddr].denomAddress;
+        denomPublicKey = validators[ethAddr].denomPublicKey;
+        signature = validators[ethAddr].signature;
+    }
+    
+    function isValidator(address ethAddr) public constant returns(bool) {
+        return validators[ethAddr].exists;
+    }
 
     function getTotalDelegators() public constant returns(uint256) {
         return delegatorList.length;
