@@ -10,7 +10,6 @@ contract DnomDistribution {
     struct Domain {
         bool registered;
         string domainName;
-        address owner;
         mapping(address => Claim) claims; // List of claims for the domain
         address[] claimAddress;
     }
@@ -19,28 +18,15 @@ contract DnomDistribution {
 
     string[] public registeredDomains;
     
-    address public owner;
-    
     uint256 initializedTime = 0;
-    
-    uint256 public dayStart = 0;
-    
-    uint256 public dayEnd = 0;
     
     uint256 public ONE_DAY = 24 * 60 * 60 * 1000;
     
     uint256 public maxRegistrationDays;
     
-    modifier onlyOwner {
-        if (msg.sender == owner) {
-            _;
-        }
-    }
-    
     constructor(uint16 registrationDays) public {
         initializedTime = block.timestamp;
         maxRegistrationDays = registrationDays;
-        owner = msg.sender;
         Claim memory claim;
         claim.denomAddress = "0x0000"; // Change this
         claim.registeredDay = 0;
@@ -48,8 +34,8 @@ contract DnomDistribution {
     }
     
     function addDomainClaim(string domainName, Claim claim) private {
+        claim.claimed = true;
         domainsRegistered[domainName].claims[msg.sender] = claim;
-        domainsRegistered[domainName].claims[msg.sender].claimed = true;
         domainsRegistered[domainName].claimAddress.push(msg.sender);
         if (!domainsRegistered[domainName].registered) {
             domainsRegistered[domainName].registered = true;
@@ -72,21 +58,11 @@ contract DnomDistribution {
         addDomainClaim(domainName, claim);
     }
     
-    function verifyDomain(string domainName, address senderAddress) public onlyOwner {
-        if (domainsRegistered[domainName].registered) {
-            if (domainsRegistered[domainName].claims[senderAddress].claimed) {
-                domainsRegistered[domainName].owner = senderAddress;
-            }
-        }
-    }
-    
     function cancelClaim(string domainName) public {
         uint16 currentDay = (uint16 ((block.timestamp - initializedTime) / ONE_DAY)) + 1;
         if (currentDay <= maxRegistrationDays) {
             if (domainsRegistered[domainName].registered) {
-                if (domainsRegistered[domainName].claims[msg.sender].claimed) {
-                    domainsRegistered[domainName].claims[msg.sender].claimed = false;
-                }
+                domainsRegistered[domainName].claims[msg.sender].claimed = false;
             }
         }
     }
@@ -110,10 +86,6 @@ contract DnomDistribution {
     function getClaimDetails(string domainName, address claimAddress) public constant returns(string denomAddress, uint16 registeredDay) {
         denomAddress = domainsRegistered[domainName].claims[claimAddress].denomAddress;
         registeredDay = domainsRegistered[domainName].claims[claimAddress].registeredDay;
-    }
-    
-    function getDomainOwner(string domainName) public constant returns(address claimAddress) {
-        return domainsRegistered[domainName].owner;
     }
 
 }
