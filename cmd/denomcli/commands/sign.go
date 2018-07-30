@@ -39,9 +39,13 @@ func SignCommand() *cobra.Command {
 			// Verifying again to handle private key leaks due to the nature of ED25519
 			// More context here: https://github.com/jedisct1/libsodium/issues/170
 			pubKey := info.GetPubKey()
+			pubKeyBytes := pubKey.Bytes()
 			if pubKey.VerifyBytes([]byte(data), signature) {
-				base64Str := base64.StdEncoding.EncodeToString(signature.Bytes())
-				fmt.Println(base64Str)
+				base64Sig := base64.StdEncoding.EncodeToString(signature.Bytes())
+				base64PubKey := base64.StdEncoding.EncodeToString(pubKeyBytes)
+				//fmt.Println("denomsig: " + base64Sig)
+				//fmt.Println("denompubkey: " + base64PubKey)
+				fmt.Printf("denomverify: key=%s;sig=%s\n", base64PubKey, base64Sig)
 			} else {
 				return errors.New("Unable to sign data")
 			}
